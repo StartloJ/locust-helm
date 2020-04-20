@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "locust-replicas.fullname" . }}
+  labels:
+    role: locust-master
+    {{- include "locust-replicas.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8089
+      protocol: TCP
+      name: http
+    - port: {{ .Values.master.masterBindPort }}
+      name: communication-slave
+  selector:
+    role: locust-master
+    {{- include "locust-replicas.selectorLabels" . | nindent 4 }}

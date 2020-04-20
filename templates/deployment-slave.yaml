@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "locust-replicas.fullname" . }}-slave
+  labels:
+    role: locust-slave
+    {{- include "locust-replicas.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.slave.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "locust-replicas.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "locust-replicas.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "locust-replicas.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: locust-slave
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.slave.image.repository }}:{{ .Values.slave.image.tagVersion }}"
+          imagePullPolicy: {{ .Values.slave.image.pullPolicy }}
+          env:
+            - name: ATTACKED_HOST
+              value: {{ .Values.targets.url }}
+            - name: LOCUST_MODE
+              value: SLAVE
+            - name: LOCUST_MASTER
+              value: {{ include "locust-replicas.fullname" . }}
+            {{- if .Values.master.locustOpt }}
+            - name: LOCUST_OPTS
+              value: {{- join " " .Values.master.locustOpt }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+            - mountPath: /locust
+              name: locust-script
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: locust-script
+          configMap:
+            name: {{ include "locust-replicas.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
