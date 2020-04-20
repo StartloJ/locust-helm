@@ -61,3 +61,10 @@ Create the name of the service account to use
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Generate Optional Operation for locust
+*/}}
+{{- define "locust-replicas.options" -}}
+{{- join " " .Values.master.locustOpt | quote }}
+{{- end -}}

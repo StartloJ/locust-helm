@@ -8,8 +8,9 @@ master:
     tagVersion: 0.8.1-py3.6
     pullPolicy: IfNotPresent
   masterBindPort: 5555
-  locustOpt: #{}
-    - "--print-stats"
+  locustOpt: {}
+    # - "--print-stats"
+    # - "--no-web"
 
 slave:
   replicaCount: 2

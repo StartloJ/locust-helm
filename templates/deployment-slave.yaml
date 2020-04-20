@@ -38,7 +38,7 @@ spec:
               value: {{ include "locust-replicas.fullname" . }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
-              value: {{- join " " .Values.master.locustOpt }}
+              value: {{ include "locust-replicas.options" . }}
             {{- end }}
           livenessProbe:
             httpGet:

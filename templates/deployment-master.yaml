@@ -43,7 +43,7 @@ spec:
               value: MASTER
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
-              value: {{- join " " .Values.master.locustOpt }}
+              value: {{ include "locust-replicas.options" . }}
             {{- end }}
           livenessProbe:
             httpGet:
