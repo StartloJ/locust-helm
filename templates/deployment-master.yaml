@@ -43,7 +43,7 @@ spec:
               value: MASTER
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
-              value: {{ .Values.master.locustOpt | join(" ") | quote }}
+              value: {{- join " " .Values.master.locustOpt }}
             {{- end }}
           livenessProbe:
             httpGet:
