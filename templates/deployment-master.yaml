@@ -3,17 +3,16 @@ kind: Deployment
 metadata:
   name: {{ include "locust-replicas.fullname" . }}-master
   labels:
-    role: locust-master
-    {{- include "locust-replicas.labels" . | nindent 4 }}
+    {{- include "locust-replicas.labelsMaster" . | nindent 4 }}
 spec:
   replicas: {{ .Values.master.replicaCount }}
   selector:
     matchLabels:
-      {{- include "locust-replicas.selectorLabels" . | nindent 6 }}
+      {{- include "locust-replicas.selectorLabelsMaster" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "locust-replicas.selectorLabels" . | nindent 8 }}
+        {{- include "locust-replicas.selectorLabelsMaster" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -41,6 +40,8 @@ spec:
               value: {{ .Values.targets.url }}
             - name: LOCUST_MODE
               value: MASTER
+            - name: LOCUST_MASTER_BIND_PORT
+              value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
               value: {{ include "locust-replicas.options" . }}
@@ -48,11 +49,11 @@ spec:
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: 8089
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: 8089
           volumeMounts:
             - mountPath: /locust
               name: locust-script
@@ -61,7 +62,7 @@ spec:
       volumes:
         - name: locust-script
           configMap:
-            name: {{ include "locust-replicas.fullname" . }}
+            name: {{ .Release.Name }}-configmap
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -3,8 +3,7 @@ kind: Service
 metadata:
   name: {{ include "locust-replicas.fullname" . }}
   labels:
-    role: locust-master
-    {{- include "locust-replicas.labels" . | nindent 4 }}
+    {{- include "locust-replicas.labelsMaster" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -15,5 +14,4 @@ spec:
     - port: {{ .Values.master.masterBindPort }}
       name: communication-slave
   selector:
-    role: locust-master
-    {{- include "locust-replicas.selectorLabels" . | nindent 4 }}
+    {{- include "locust-replicas.selectorLabelsMaster" . | nindent 4 }}

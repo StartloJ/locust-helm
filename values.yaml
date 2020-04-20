@@ -5,25 +5,26 @@ master:
   replicaCount: 1
   image:
     repository: grubykarol/locust
-    tagVersion: 0.8.1-py3.6
+    tagVersion: 0.13.5-python3.8-alpine3.11
     pullPolicy: IfNotPresent
-  masterBindPort: 5555
-  locustOpt: {}
-    # - "--print-stats"
+  masterBindPort: 5557
+  locustOpt:
+    - "--print-stats"
+    - "-f locust.py"
     # - "--no-web"
 
 slave:
-  replicaCount: 2
+  replicaCount: 3
   image:
     repository: grubykarol/locust
-    tagVersion: 0.8.1-py3.6
+    tagVersion: 0.13.5-python3.8-alpine3.11
     pullPolicy: IfNotPresent
 
 targets:
   url: www.example.com
 
 customScript:
-  enable: true
+  enabled: true
   path: "./locust"
 
 imagePullSecrets: []
@@ -59,7 +60,7 @@ ingress:
     ingress.kubernetes.io/rewrite-traget: /
     ingress.kubernetes.io/ssl-redirect: "false"
   hosts:
-    - host: load-test.opsta.in.th
+    - host: load-test.k8s.opsta.in.th
       paths: ["/"]
   tls: []
   #  - secretName: chart-example-tls
@@ -83,6 +84,3 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-scripts:
-  locust.py: |-

@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: {{ include "locust-replicas.fullname" . }}-slave
   labels:
-    role: locust-slave
     {{- include "locust-replicas.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.slave.replicaCount }}
@@ -34,20 +33,14 @@ spec:
               value: {{ .Values.targets.url }}
             - name: LOCUST_MODE
               value: SLAVE
-            - name: LOCUST_MASTER
+            - name: LOCUST_MASTER_HOST
               value: {{ include "locust-replicas.fullname" . }}
+            - name: LOCUST_MASTER_BIND_PORT
+              value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
               value: {{ include "locust-replicas.options" . }}
             {{- end }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           volumeMounts:
             - mountPath: /locust
               name: locust-script
@@ -56,7 +49,7 @@ spec:
       volumes:
         - name: locust-script
           configMap:
-            name: {{ include "locust-replicas.fullname" . }}
+            name: {{ .Release.Name }}-configmap
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

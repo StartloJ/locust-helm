@@ -35,8 +35,10 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "locust-replicas.labels" -}}
+role: locust-slave
 helm.sh/chart: {{ include "locust-replicas.chart" . }}
-{{ include "locust-replicas.selectorLabels" . }}
+app.kubernetes.io/name: {{ include "locust-replicas.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -49,6 +51,27 @@ Selector labels
 {{- define "locust-replicas.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "locust-replicas.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Locust Master labels
+*/}}
+{{- define "locust-replicas.labelsMaster" -}}
+helm.sh/chart: {{ include "locust-replicas.chart" . }}
+{{ include "locust-replicas.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Selector Master labels
+*/}}
+{{- define "locust-replicas.selectorLabelsMaster" -}}
+app.kubernetes.io/name: {{ include "locust-replicas.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+role: locust-master
 {{- end -}}
 
 {{/*
