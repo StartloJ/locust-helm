@@ -1,2 +1,3 @@
 locust/res.json
 locust/test_*
+locust/__pycache__
