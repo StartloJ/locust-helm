@@ -67,23 +67,22 @@ to create user's session to get any action.
   """
   USER_TOKEN = None
 
-  def __encodeToken(self,strtoken):
+  def encodeToken(self,strtoken):
     msgByte = strtoken.encode('utf8')
     base64Byte = base64.b64encode(msgByte)
     return base64Byte.decode('utf8')
   
-  def __decodeToken(self,encodetoken):
+  def decodeToken(self,encodetoken):
     base64Msg = encodetoken.encode('utf8')
     msgByte = base64.b64decode(base64Msg)
     return msgByte.decode('utf8')
 
-  def __getToken(self):
-    return self.__decodeToken(self.USER_TOKEN)
+  def getToken(self):
+    return self.decodeToken(self.USER_TOKEN)
   
-  def __setToken(self,token):
-    self.USER_TOKEN = self.__encodeToken(token)
+  def setToken(self,token):
+    self.USER_TOKEN = self.encodeToken(token)
 
-  @seq_task(1)
   def sendCredentials(self):
     headerSet = {"Content-Type": "application/json"}
     postBodies = {
@@ -97,20 +96,18 @@ to create user's session to get any action.
       if response.status_code != 200 and jdata['msg']['description'] != "Success":
         response.failure("Wrong Response, it should message desc is \"Success\".")
       else:
-        self.__setToken(jdata["data"]["token"])
+        self.setToken(jdata["data"]["token"])
   
-  @seq_task(2)
   def refreshToken(self):
-    headerSet = {"Authorization": "Bearer "+self.__getToken() }
+    headerSet = {"Authorization": "Bearer "+self.getToken() }
     with self.client.get("/refresh_token", headers=headerSet, catch_response=True) as response:
       jdata = json.loads(response.content)
       isContentLoad = True if 'expire' in jdata['data'] else False
       if response.status_code != 200 and jdata['msg']['description'] != "Success" and not isContentLoad:
         response.failure("Wrong Response, it should message desc is \"Success\" and Content least 1 for all.")
 
-  @seq_task(3)
   def checkPinMobile(self):
-    headerSet = {"Authorization": "Bearer "+self.__getToken() }
+    headerSet = {"Authorization": "Bearer "+self.getToken() }
     payload = {
       "pin": "123451",
       "pin_confirm": "123451"
@@ -121,20 +118,89 @@ to create user's session to get any action.
       if response.status_code != 200 and jdata['msg']['description'] != "Success" and not isContentLoad:
         response.failure("Wrong Response, it should message desc is \"Success\" and Content least 1 for all.")
 
-  @seq_task(3)
   def getProfileMe(self):
-    headerSet = {"Authorization": "Bearer "+self.__getToken() }
+    headerSet = {"Authorization": "Bearer "+self.getToken() }
     with self.client.get("/me", headers=headerSet, catch_response=True) as response:
       jdata = json.loads(response.content)
       isContentLoad = True if 'id' in jdata['data'] else False
       if response.status_code != 200 and jdata['msg']['description'] != "Success" and not isContentLoad:
         response.failure("Wrong Response, it should message desc is \"Success\" and Content least 1 for all.")
-
-
-class UserFirstAction(TaskSequence,OpenHomePage):
   
-  def funcname(self, parameter_list):
-    raise NotImplementedError
+
+class UserFirstAction(LoginwithAccount,OpenHomePage):
+  
+  @seq_task(1)
+  def openPage(self):
+    print("Start with: " + self.getToken())
+    self.openApp()
+    self.openTranslation()
+    self.openNotiSub()
+    self.mobileNews()
+  
+  @seq_task(2)
+  def Login(self):
+    self.sendCredentials()
+    print("Login: " + self.getToken())
+  
+  # @seq_task(3)
+  # def refreshToken(self):
+  #   self.refreshToken()
+  
+  @seq_task(4)
+  def chkPinandgetMe(self):
+    self.checkPinMobile()
+    self.getProfileMe()
+    print("Chk Profile: " + self.getToken())
+  
+  @seq_task(5)
+  def afterLogin(self):
+    self.homepage()
+    self.refreshToken()
+    self.getProfileMe()
+    self.mobileNews()
+    print("Post Login: " + self.getToken())
+
+class UserGetNearby(LoginwithAccount,OpenHomePage):
+
+  def getNearBy(self):
+    parameters = {
+      "lat": 13.6925968,
+      "ing": 100.60917,
+      "page": 1,
+      "per_page": 200
+    }
+    with self.client.get("/locations", params=parameters, catch_response=True) as response:
+      jdata = json.loads(response.content)
+      isContentLoad = True if jdata['data']['pagination']['total'] >= 0 else False
+      if response.status_code != 200 and jdata['msg']['description'] != "Success" and not isContentLoad:
+        response.failure("Wrong Response, it should message desc is \"Success\" and Content least 1 for all.")
+
+  @seq_task(1)
+  def openPage(self):
+    self.openApp()
+    self.openTranslation()
+  
+  @seq_task(2)
+  def Login(self):
+    self.sendCredentials()
+  
+  @seq_task(3)
+  def refreshToken(self):
+    self.refreshToken()
+  
+  @seq_task(4)
+  def chkPinandgetMe(self):
+    self.checkPinMobile()
+    self.getProfileMe()
+  
+  @seq_task(5)
+  def afterLogin(self):
+    self.homepage()
+    self.refreshToken()
+    self.getProfileMe()
+    self.mobileNews()
+    self.getNearBy()
+
 class Start(HttpLocust):
-  task_set = LoginwithAccount
+  task_set = UserFirstAction
   wait_time = between(1,5)
