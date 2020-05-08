@@ -36,10 +36,14 @@ spec:
               containerPort: {{ .Values.master.masterBindPort }}
               protocol: TCP
           env:
-            - name: ATTACKED_HOST
+            - name: WEB_AUTH
+              value: "{{ .Values.master.auth.username }}:{{ .Values.master.auth.password }}"
+            - name: WEB_PORT
+              value: 8089
+            - name: LOCUST_HOST
               value: {{ .Values.targets.url }}
-            - name: LOCUST_MODE
-              value: MASTER
+            - name: LOCUST_MODE_MASTER
+              value: true
             - name: LOCUST_MASTER_BIND_PORT
               value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}

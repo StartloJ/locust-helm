@@ -29,13 +29,13 @@ spec:
           image: "{{ .Values.slave.image.repository }}:{{ .Values.slave.image.tagVersion }}"
           imagePullPolicy: {{ .Values.slave.image.pullPolicy }}
           env:
-            - name: ATTACKED_HOST
+            - name: LOCUST_HOST
               value: {{ .Values.targets.url }}
-            - name: LOCUST_MODE
-              value: SLAVE
-            - name: LOCUST_MASTER_HOST
+            - name: LOCUST_MODE_WORKER
+              value: true
+            - name: MASTER_HOST
               value: {{ include "locust-replicas.fullname" . }}
-            - name: LOCUST_MASTER_BIND_PORT
+            - name: MASTER_PORT
               value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
