@@ -31,15 +31,13 @@ spec:
           env:
             - name: LOCUST_HOST
               value: {{ .Values.targets.url }}
-            - name: LOCUST_MODE_WORKER
-              value: true
             - name: MASTER_HOST
               value: {{ include "locust-replicas.fullname" . }}
             - name: MASTER_PORT
               value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
-              value: {{ include "locust-replicas.options" . }}
+              value: {{ include "locust-replicas.options-worker" . }}
             {{- end }}
           volumeMounts:
             - mountPath: /locust

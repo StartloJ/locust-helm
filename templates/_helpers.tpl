@@ -86,8 +86,15 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
-Generate Optional Operation for locust
+Generate Optional Operation for locust Master
 */}}
-{{- define "locust-replicas.options" -}}
+{{- define "locust-replicas.options-master" -}}
 {{- join " " .Values.master.locustOpt | quote }}
+{{- end -}}
+
+{{/*
+Generate Optional Operation for locust Worker
+*/}}
+{{- define "locust-replicas.options-worker" -}}
+{{- join " " .Values.slave.locustOpt | quote }}
 {{- end -}}

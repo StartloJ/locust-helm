@@ -4,11 +4,15 @@
 master:
   replicaCount: 1
   image:
-    repository: grubykarol/locust
-    tagVersion: 0.13.5-python3.8-alpine3.11
+    repository: dukecyber/locust
+    tagVersion: 1.0b2
     pullPolicy: IfNotPresent
   masterBindPort: 5557
+  auth:
+    username: "opsta"
+    password: "tikkle"
   locustOpt:
+    - "--master"
     - "--print-stats"
     - "-f locust.py"
     # - "--no-web"
@@ -16,9 +20,13 @@ master:
 slave:
   replicaCount: 3
   image:
-    repository: grubykarol/locust
-    tagVersion: 0.13.5-python3.8-alpine3.11
+    repository: dukecyber/locust
+    tagVersion: 1.0b2
     pullPolicy: IfNotPresent
+  locustOpt:
+    - "--worker"
+    - "--print-stats"
+    - "-f locust.py"
 
 targets:
   url: www.example.com
