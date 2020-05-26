@@ -36,8 +36,10 @@ spec:
               containerPort: {{ .Values.master.masterBindPort }}
               protocol: TCP
           env:
-            - name: WEB_AUTH
+            {{- if .Values.master.auth }}
+            - name: LOCUST_WEB_AUTH
               value: "{{ .Values.master.auth.username }}:{{ .Values.master.auth.password }}"
+            {{- end }}
             - name: WEB_PORT
               value: "8089"
             - name: LOCUST_HOST
@@ -48,19 +50,31 @@ spec:
             - name: LOCUST_OPTS
               value: {{ include "locust-replicas.options-master" . }}
             {{- end }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8089
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8089
           volumeMounts:
             - mountPath: /locust
               name: locust-script
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.master.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8089
+              {{- if .Values.master.auth }}
+              httpHeaders:
+                - name: Authorization
+                  value: "Basic {{ .Values.master.auth|b64enc }}"
+              {{- end }}
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8089
+              {{- if .Values.master.auth }}
+              httpHeaders:
+                - name: Authorization
+                  value: "Basic {{ .Values.master.auth|b64enc }}"
+              {{- end }}
+            initialDelaySeconds: 5
       volumes:
         - name: locust-script
           configMap:

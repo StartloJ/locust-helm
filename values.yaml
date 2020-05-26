@@ -6,27 +6,40 @@ master:
   image:
     repository: dukecyber/locust
     tagVersion: 1.0b2
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   masterBindPort: 5557
-  auth:
-    username: "opsta"
-    password: "tikkle"
+  # auth: "username:password"
   locustOpt:
     - "--master"
-    - "--print-stats"
-    - "-f locust.py"
-    # - "--no-web"
+    - "--loglevel INFO"
+    # - "--web-host *"
+    - "-f saijai-payload.py"
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "500m"
 
 slave:
-  replicaCount: 3
+  replicaCount: 5
   image:
     repository: dukecyber/locust
     tagVersion: 1.0b2
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   locustOpt:
     - "--worker"
-    - "--print-stats"
-    - "-f locust.py"
+    - "--loglevel DEBUG"
+    - "-f saijai-payload.py"
+
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "0.25"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
 
 targets:
   url: www.example.com

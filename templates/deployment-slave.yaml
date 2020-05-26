@@ -31,9 +31,9 @@ spec:
           env:
             - name: LOCUST_HOST
               value: {{ .Values.targets.url }}
-            - name: MASTER_HOST
+            - name: LOCUST_MASTER_NODE_HOST
               value: {{ include "locust-replicas.fullname" . }}
-            - name: MASTER_PORT
+            - name: LOCUST_MASTER_NODE_PORT
               value: {{ .Values.master.masterBindPort | quote }}
             {{- if .Values.master.locustOpt }}
             - name: LOCUST_OPTS
@@ -43,7 +43,7 @@ spec:
             - mountPath: /locust
               name: locust-script
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.slave.resources | nindent 12 }}
       volumes:
         - name: locust-script
           configMap:
